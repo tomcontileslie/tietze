@@ -1,10 +1,11 @@
-## stz.g: Semigroup Tietze
+## helpers.g: Semigroup Tietze Helper functions
 ##
 ## The goal of this file is to implement some standard "tietze-compatible"
-## presentation format, and then implement simplification methods.
+## presentation format, and then implement low-level methods that substitute
+## out words and generators for other generators.
 ##
-## Choose list of relations format similar to ExtRepOfObj. Throughout, <stz>
-## will be a list of lists of ints, where [1, 4, 2, 3] denotes a^4 * b^3.
+## Choose list of relations format similar to Letter. Throughout, <stz>
+## will be a list of lists of ints, where [1, 2, 2] denotes abb.
 
 # This function takes an FpSemigroup and returns its stz.
 AsStzObject := function(s)
@@ -63,6 +64,11 @@ StzSubstitute := function(ext, gen, prod)
   return StzSimplify(out);
 end;
 
+########
+# TCL: todo: all the functions above work on ExtRep objects. Functions
+# below work on LetterRep objects. LetterRep is preferable, so the
+# ones above need to be updated.
+########
 
 # Searches through the relations of stzObj and replaces each instance of subword
 # with newWord, except if the entire relation is exactly subWord (preserving a
