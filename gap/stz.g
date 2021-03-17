@@ -62,3 +62,59 @@ StzSubstitute := function(ext, gen, prod)
   od;
   return StzSimplify(out);
 end;
+
+
+# Searches through the relations of stzObj and replaces each instance of subword
+# with newWord, except if the entire relation is exactly subWord (preserving a
+# newly created relation)
+# newWord should be stricly less than subword or else may be an infinite
+# sequence (maybe just handle this?)
+StzReplaceSubword := function(stzObj, subword, newWord)
+    local out, gens, rels, newRels, rel1, rel2;
+    # Using format of LetterRepAssocWord, can change
+    # Global variable eg STZ_GENS := 1, STZ_RELS := 2?
+    gens := stzObj[1];
+    rels := StzObj[2];
+
+    newRels := List([1 .. Length(rels)], x -> []);
+    for i in Length(rels) do
+        if rels[i][1] = subword then
+            rel1 := rels[i][1];
+        else
+            rel1 := StzReplaceSubwordRel(rels[i][1], subword, newWord);
+        fi;
+        if rels[i][2] = subword then
+            rel2 := rels[i][2];
+        else
+            rel2 := StzReplaceSubwordRel(rels[i][2], subword, newWord);
+        fi;
+        newRels[i] := [rel1, rel2];
+    od;
+end;
+
+# Searches a single LetterRepAssocWord list and replace instances of subword
+# with newWord
+StzReplaceSubwordRel := function(letterRep, subword, newWord)
+    local out, pos;
+    out := [];
+    pos := PositionSublist(letterRep, subword);
+    if pos <> fail then
+        for i in [1 .. pos - 1] do
+            Append(out, [letterRep[i]]);
+        od;
+        for i in [1 .. Length(newWord)] do
+            Append(out, [newWord[i]]);
+        od;
+        for i in [pos + Length(subword) .. Length(letterRep)] do
+            Append(out, [letterRep[i]]);
+        od;
+        pos := PositionSublist(out, subword);
+        if pos <> fail then
+            return StzReplaceSubwordRel(out, subword, newWord);
+        else
+            return out;
+        fi;
+    else
+        return letterRep;
+    fi;
+end;
