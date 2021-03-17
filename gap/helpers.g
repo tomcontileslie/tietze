@@ -2,18 +2,44 @@
 ##
 ## The goal of this file is to implement some standard "tietze-compatible"
 ## presentation format, and then implement low-level methods that substitute
-## out words and generators for other generators.
+## out words and generators for other generators.
 ##
-## Choose list of relations format similar to Letter. Throughout, <stz>
-## will be a list of lists of ints, where [1, 2, 2] denotes abb.
+## Choose list of relations format similar to Letter Rep.
+## Throughout, <stz> will be a record with the following components:
+## - stz.gens is a list of generators of the fp semigroup
+## - stz.rels is list of lists of LetterRep ints, where [1, 2, 2] denotes abb.
 
-# This function takes an FpSemigroup and returns its stz.
-AsStzObject := function(s)
+# This function takes an FpSemigroup and returns its stz rep
+FpSemigroupToStzObj := function(s)
+  local gens, rels;
   if not IsFpSemigroup(s) then
     ErrorNoReturn("Argument <s> must be a fp semigroup");
   fi;
-  return List(RelationsOfFpSemigroup(s),
-              x -> [ExtRepOfObj(x[1]), ExtRepOfObj(x[2])]);
+  gens := GeneratorsOfSemigroup(s);
+  rels := List(RelationsOfFpSemigroup(s),
+               x -> [LetterRepAssocWord(x[1]),
+                     LetterRepAssocWord(x[2])]);
+  return rec(gens := gens, rels := rels);
+end;
+
+# This function takes an stz rep and returns the FpSemigroup corresponding to it
+# (note the generators in stz.gens are generators of *some* fp semigroup,
+# but they are not the generators of the fp semigroup that will be output
+# because the presentation has changed compared to when the stz object was
+# created
+#
+# Essentially this function is just GAP gymnastics
+StzObjToFpSemigroup := function(stz)
+  local f, fam, rels;
+  # retrieve overlying free semigroup
+  f := FreeSemigroupOfFpSemigroup(
+       FpGrpMonSmgOfFpGrpMonSmgElement(stz.gens[1]));
+  fam  := FamilyObj(f.1);
+  # convert relations into free semigroup relations
+  rels := List(stz.rels,
+               x -> [AssocWordByLetterRep(fam, x[1]),
+                     AssocWordByLetterRep(fam, x[2])]);
+  return f / rels;
 end;
 
 # This function merges any repeated generators in an ExtRep list.
