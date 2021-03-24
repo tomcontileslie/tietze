@@ -102,11 +102,11 @@ end;
 # newWord should be stricly less than subword or else may be an infinite
 # sequence (maybe just handle this?)
 StzReplaceSubword := function(stzObj, subword, newWord)
-    local out, gens, rels, newRels, rel1, rel2;
+  local gens, rels, newRels, rel1, rel2, i;
     # Using format of LetterRepAssocWord, can change
     # Global variable eg STZ_GENS := 1, STZ_RELS := 2?
     gens := stzObj[1];
-    rels := StzObj[2];
+    rels := stzObj[2];
 
     newRels := List([1 .. Length(rels)], x -> []);
     for i in Length(rels) do
@@ -127,7 +127,7 @@ end;
 # Searches a single LetterRepAssocWord list and replace instances of subword
 # with newWord
 StzReplaceSubwordRel := function(letterRep, subword, newWord)
-    local out, pos;
+  local out, pos, i;
     out := [];
     pos := PositionSublist(letterRep, subword);
     if pos <> fail then
