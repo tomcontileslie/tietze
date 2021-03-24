@@ -90,6 +90,80 @@ StzSubstitute := function(ext, gen, prod)
   return StzSimplify(out);
 end;
 
+# This function takes as argument a list of strings representing generator
+# names, e.g. from a free semigroup. It returns a string that is "reasonable"
+# as a new variable name, that is not already taken.
+NewGeneratorName := function(names)
+  local alph, Alph, na, nA, names_prefx, names_suffx, int_positions, prefixes,
+        prefixes_collected, p, ints, i, name;
+
+  # useful helper variables
+  alph := "abcdefghijklmnopqrstuvwxyz";
+  Alph := "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  # SPECIAL CASE 0: empty list
+  if Length(names) = 0 then
+    return "a";
+  fi;
+
+  # SPECIAL CASE 1: only one generator
+  if Length(names) = 1 then
+    if Length(names[1]) = 1 then
+      if names[1][1] in Alph then
+        return [First(Alph, x -> not [x] in names)];
+      elif names[1][1] in alph then
+        return [First(alph, x -> not [x] in names)];
+      else
+        return "a";
+      fi;
+    else
+      return "a";
+    fi;
+  fi;
+
+  # SPECIAL CASE 2: single letter names are present. Add an unused letter
+  # with the most common capitalisation
+  na := Length(Filtered(names, x -> Length(x) = 1 and x[1] in alph));
+  nA := Length(Filtered(names, x -> Length(x) = 1 and x[1] in Alph));
+  if 2 <= na and na < 26 then
+    if na <= nA and nA < 26 then
+      return [First(Alph, x -> not [x] in names)];
+    else
+      return [First(alph, x -> not [x] in names)];
+    fi;
+  elif 2 <= nA and nA < 26 then
+    return [First(Alph, x -> not [x] in names)];
+  fi;
+
+  # SPECIAL CASE 3: there are names like s1, s3, s23, etc or x12, etc
+  names_prefx := StructuralCopy(names);
+  names_suffx := StructuralCopy(names);
+  Apply(names_prefx, x -> [x[1]]);
+  for name in names_suffx do
+    Remove(name, 1);
+  od;
+  int_positions := PositionsProperty(names_suffx, x -> Int(x) <> fail
+                                              and x <> ""
+                                              and x[1] <> '-');
+  if Length(int_positions) >= 2 then
+    prefixes           := names_prefx{int_positions};
+    prefixes_collected := Collected(prefixes);
+    # look for highest frequency in collected list
+    p := prefixes_collected[PositionMaximum(prefixes_collected, x -> x[2])][1];
+    # find maximum suffix int, even amongst those with prefix not p
+    ints := List(names_suffx{int_positions}, Int);
+    i    := Maximum(ints) + 1;
+    return Concatenation(p, String(i));
+  fi;
+
+  # if none of the special cases are covered, just try s1, s2,... until good
+  for i in [1 .. Length(names) + 1] do
+    if not Concatenation("s", String(i)) in names then
+      return Concatenation("s", String(i));
+    fi;
+  od;
+end;
+
 ########
 # TCL: todo: all the functions above work on ExtRep objects. Functions
 # below work on LetterRep objects. LetterRep is preferable, so the
