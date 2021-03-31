@@ -19,26 +19,21 @@ FpSemigroupToStzObj := function(s)
   rels := List(RelationsOfFpSemigroup(s),
                x -> [LetterRepAssocWord(x[1]),
                      LetterRepAssocWord(x[2])]);
-  return rec(gens := gens, rels := rels);
+  return rec(gens := List(gens, ViewString), rels := rels);
 end;
 
 # This function takes an stz rep and returns the FpSemigroup corresponding to it
-# (note the generators in stz.gens are generators of *some* fp semigroup,
-# but they are not the generators of the fp semigroup that will be output
-# because the presentation has changed compared to when the stz object was
-# created
 #
-# Essentially this function is just GAP gymnastics
+# Argument <stz> should be a record with stz.gens a list of strings, and
+# stz.rels a list of pairs of assoc words
 StzObjToFpSemigroup := function(stz)
   local f, fam, rels;
-  # retrieve overlying free semigroup
-  f := FreeSemigroupOfFpSemigroup(
-       FpGrpMonSmgOfFpGrpMonSmgElement(stz.gens[1]));
-  fam  := FamilyObj(f.1);
-  # convert relations into free semigroup relations
-  rels := List(stz.rels,
-               x -> [AssocWordByLetterRep(fam, x[1]),
-                     AssocWordByLetterRep(fam, x[2])]);
+  f := FreeSemigroup(stz.gens);
+  # retrieve family for assoc word transplant
+  fam := FamilyObj(f.1);
+  # convert word reps into free semigroup elements
+  rels := List(stz.rels, x -> List(x, y -> AssocWordByLetterRep(fam, y)));
+  # quotient out to get the fp semigroup
   return f / rels;
 end;
 
