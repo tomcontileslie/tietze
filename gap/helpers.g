@@ -179,8 +179,8 @@ StzReplaceSubword := function(stzObj, subword, newWord)
   local gens, rels, newRels, rel1, rel2, i;
     # Using format of LetterRepAssocWord, can change
     # Global variable eg STZ_GENS := 1, STZ_RELS := 2?
-    gens := stzObj[1];
-    rels := stzObj[2];
+    gens := stzObj.gens;  # TDCL: note this is unused
+    rels := stzObj.rels;
 
     newRels := List([1 .. Length(rels)], x -> []);
     for i in Length(rels) do
