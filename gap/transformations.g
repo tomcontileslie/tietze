@@ -93,3 +93,40 @@ TietzeTransformation2 := function(stz, index)
                   "redundant in the presentation <stz>");
   fi;
 end;
+
+# TIETZE TRANSFORMATION 3: ADD NEW GENERATOR
+TietzeTransformation3 := function(stz, word)
+  local new_strs, n, new_rels, f, free_fam, free_rels;
+  # Arguments:
+  # - <stz> should be a Semigroup Tietze object.
+  # - <word> should be a LetterRep word
+  #
+  # Returns:
+  # - nothing, and modifies <stz> in place by adding the relation gen=word,
+  #   if the input is reasonable.
+  # - ErrorNoReturn if the generator number already exists in stz.
+
+  # TODO could be custom specification of what generator string should be
+
+  # find new generator with similar label to ones used so far
+  # NewGeneratorName is in gap/helpers.g
+  new_strs := List(stz.gens, ViewString);
+  n        := Length(new_strs);
+  Add(new_strs, NewGeneratorName(new_strs));
+
+  # Add new relation to list
+  new_rels  := StructuralCopy(stz.rels);  # TODO check copy
+  Add(new_rels, [word, [n + 1]]);         # could also be other way around
+
+  # We have a new generator so need to re-create fp semigroup generators.
+  # Start with free semigroup, translate relations into relations in that free
+  # semigroup, then quotient out and retrieve generators
+  f := FreeSemigroup(new_strs);
+  # find family for marrow transplant
+  free_fam  := FamilyObj(f.1);
+  free_rels := List(new_rels,
+                    x -> List(x, y -> AssocWordByLetterRep(free_fam, y)));
+  # quotient and get generators
+  stz.gens := GeneratorsOfSemigroup(f / free_rels);
+  stz.rels := new_rels;
+end;
