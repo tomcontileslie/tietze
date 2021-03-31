@@ -130,3 +130,75 @@ TietzeTransformation3 := function(stz, word)
   stz.gens := GeneratorsOfSemigroup(f / free_rels);
   stz.rels := new_rels;
 end;
+
+# TIETZE TRANSFORMATION 4: REMOVE GENERATOR
+TietzeTransformation4 := function(stz, gen)
+  local found_expr, expr, index, i;
+  # Arguments:
+  # - <stz> should be a Semigroup Tietze object.
+  # - <gen> should be a pos int (number of generator to be removed)
+  #
+  # Returns:
+  # - nothing, and modifies <stz> in place by removing generator number <gen>,
+  #   if this function can find an expression for that generator as a product
+  #   of some combination of other generators.
+  # - ErrorNoReturn if this is impossible.
+
+  # TODO probably very reasonable to have a NC version where where you specify
+  # generator number and word to replace it with, and it just does it without
+  # asking.
+
+  # TODO also an intermediate implementation is to have a method for this
+  # function which takes in three arguments stz, gen, word and subs word for gen
+  # IF it can verify that [gen] = word in stz.
+
+  # argument checks
+  if Length(stz.gens) = 1 then
+    ErrorNoReturn("cannot remove only remaining generator",
+                  ViewString(stz.gens[1]));
+  fi;
+  if gen > Length(stz.gens) then
+    ErrorNoReturn("second argument must be no greater than the total\n",
+                  "number of generators");
+  fi;
+
+  # find expression for gen
+  # TODO this can be less lazy than just looking for an explicit relation
+  # NOTE: on the above todo, in fairness we could implement only lazy checking
+  # and get the user to add a reduandant relation using Tietze 1, then apply
+  # Tietze 4.
+  found_expr := false;
+  for i in [1 .. Length(stz.rels)] do
+    if stz.rels[i][1] = [gen] and not gen in stz.rels[i][2] then
+      found_expr := true;
+      expr       := ShallowCopy(stz.rels[i][2]);  # TODO necessary?
+      index      := i;
+      break;
+    elif stz.rels[i][2] = [gen] and not gen in stz.rels[i][1] then
+      found_expr := true;
+      expr       := ShallowCopy(stz.rels[i][1]);  # TODO necessary?
+      index      := i;
+      break;
+    fi;
+  od;
+
+  # check we found one
+  if not found_expr then
+    ErrorNoReturn("no explicit relation expressing second argument as a\n",
+                  "combination of other generators");
+  fi;
+
+  # otherwise, sub in expression we found and remove relation we used for gen
+  # TODO stop the middle man ext rep conversion
+  Remove(stz.rels, index);
+  expr := SEMIGROUPS.WordToExtRepObj(expr);
+  Apply(stz.rels, x -> List(x, SEMIGROUPS.WordToExtRepObj));
+  Apply(stz.rels, x -> List(x, y -> StzSubstitute(y, gen, expr)));
+  Apply(stz.rels, x -> List(x, SEMIGROUPS.ExtRepObjToWord));
+
+  # remove generator.
+  # TODO this line is bad, doesn't actually do what we want
+  # TCL: I will eventually change this so we're just storing strings in the
+  # generators
+  Remove(stz.gens, index);
+end;
