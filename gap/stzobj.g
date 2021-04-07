@@ -1,4 +1,3 @@
-
 ################################################################################
 # The Stz Object (name pending)
 # Idea is to have a single object containing generators and relations that can
@@ -21,14 +20,32 @@ DeclareCategory("IsStzPresentation", IsList);
 
 # Can add extra representations as attributes?
 # Maybe use 'representation' instead
+
+# Current relations in the process of being reduced
 DeclareAttribute("RelationsOfStzPresentation", IsStzPresentation);
+
+# Letter representation of the current relations
 DeclareOperation("LetterRepRelationsOfStzPresentation", [IsStzPresentation]);
+
+# Setter for relations, checks that list is in ext rep form
 DeclareOperation("SetRelationsOfStzPresentation", [IsStzPresentation, IsList]);
+
 DeclareAttribute("GeneratorsOfStzPresentation", IsStzPresentation);
+
+# Constructs new fp semigroup out of current relations and generators
 DeclareOperation("SemigroupOfStzPresentation", [IsStzPresentation]);
+
+# Stores original semigroup before reductions
 DeclareAttribute("UnreducedSemigroupOfStzPresentation", IsStzPresentation);
 
+# Stores a map between the words of each semigroup (how?)
+# Change as relations change
+# Otherwise must keep track of all tietze transforms i suppose
+DeclareAttribute("MapToUnreducedFpSemigroup",IsStzPresentation);
+
+# FP semigroup attributes
 DeclareAttribute("UnreducedFpSemigroupOfFpSemigroup", IsFpSemigroup);
+DeclareAttribute("MapToUnreducedFpSemigroup", IsFpSemigroup);
 
 ## Perhaps deprecated: will be passing a semigroup itself to the reduction
 ## function anyway so who cares about doing this constructor
@@ -59,7 +76,7 @@ function(S)
     local out, rels, type;
 
     type := NewType(NewFamily("StzFamily", IsStzPresentation),
-                    IsStzPresentation and IsAttributeStoringRep);
+                    IsStzPresentation and IsComponentObjectRep);
 
     rels := List(RelationsOfFpSemigroup(S),
                 x -> [ExtRepOfObj(x[1]), ExtRepOfObj(x[2])]);
@@ -72,7 +89,9 @@ function(S)
                                     GeneratorsOfStzPresentation,
                                     out!.gens,
                                     UnreducedSemigroupOfStzPresentation,
-                                    out!.unreducedSemigroup);
+                                    out!.unreducedSemigroup,
+                                    MapToUnreducedFpSemigroup,
+                                    List([1..Length(out!.gens)], x -> [x]));
 end);
 
 # Add checks cause this can break everything
@@ -138,6 +157,9 @@ function(stz)
     out := F / List(rels, x -> List(x, y -> Product(List(y, z -> gens[z]))));
     SetUnreducedFpSemigroupOfFpSemigroup(out,
                                     UnreducedSemigroupOfStzPresentation(stz));
+    # May well break now but this MUST exist so its okay at the moment
+    MapToUnreducedFpSemigroup(out,
+                            MapToUnreducedFpSemigroup(stz));
     return out;
 end);
 
