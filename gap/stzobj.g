@@ -62,7 +62,8 @@ function(S)
                     IsStzPresentation and IsAttributeStoringRep);
 
     rels := List(RelationsOfFpSemigroup(S),
-                x -> [ExtRepOfObj(x[1]), ExtRepOfObj(x[2])]);
+                 x -> [SEMIGROUPS.ExtRepObjToWord(ExtRepOfObj(x[1])),
+                       SEMIGROUPS.ExtRepObjToWord(ExtRepOfObj(x[2]))]);
 
     out := rec(gens := List(GeneratorsOfSemigroup(S), x -> ViewString(x)), rels := rels, unreducedSemigroup := S);
 
@@ -133,8 +134,9 @@ InstallMethod(SemigroupOfStzPresentation,
 function(stz)
     local out, F, rels, gens;
     F := FreeSemigroup(stz!.gens);
-    rels := LetterRepRelationsOfStzPresentation(stz);
+    rels := stz!.rels;
     gens := GeneratorsOfSemigroup(F);
+    # TCL: TODO: I think AssocWordByLetterRep is better for next line
     out := F / List(rels, x -> List(x, y -> Product(List(y, z -> gens[z]))));
     SetUnreducedFpSemigroupOfFpSemigroup(out,
                                     UnreducedSemigroupOfStzPresentation(stz));
