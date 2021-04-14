@@ -252,6 +252,17 @@ function(stz, index, newMap)
     stz!.mapToUnreducedFpSemigroup[index] := newMap;
 end);
 
+DeclareOperation("SetMapToUnreducedFpSemigroup", [IsStzPresentation, IsList]);
+
+InstallMethod(SetMapToUnreducedFpSemigroup,
+[IsStzPresentation, IsList],
+function(stz, newMaps)
+    if not ForAll(newMaps, x -> IsList and ForAll(x, y -> IsPosInt)) then
+        ErrorNoReturn("argument <newMaps> must be a list of positive integers,");
+    fi;
+    stz!.mapToUnreducedFpSemigroup := newMaps;
+end);
+
 InstallMethod(MapToUnreducedFpSemigroupReplaceSubword,
 [IsStzPresentation, IsList, IsList],
 function(stz, subWord, newSubWord)
