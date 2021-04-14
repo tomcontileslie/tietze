@@ -176,6 +176,12 @@ TietzeTransformation4 := function(stz, gen)
 
   # update mapping (do this early I think)
   MapToUnreducedFpSemigroupReplaceSubword(stz, [gen], expr);
+  tempMaps := MapToUnreducedFpSemigroup(stz);
+  for map in [1.. Length(tempMaps)] do
+    tempMap := ShallowCopy(tempMaps[map]);
+    Apply(tempMap, decrement);
+    SetMapToUnreducedFpSemigroup(stz, map, tempMap);
+  od;
 
   # otherwise, sub in expression we found and remove relation we used for gen
   # TODO stop the middle man ext rep conversion
