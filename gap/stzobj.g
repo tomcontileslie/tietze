@@ -88,6 +88,8 @@ DeclareOperation("SetRelationsOfStzPresentation", [IsStzPresentation, IsList]);
 
 DeclareAttribute("GeneratorsOfStzPresentation", IsStzPresentation);
 
+DeclareOperation("SetGeneratorsOfStzPresentation", [IsStzPresentation, IsList]);
+
 # Constructs new fp semigroup out of current relations and generators
 DeclareOperation("SemigroupOfStzPresentation", [IsStzPresentation]);
 
@@ -192,6 +194,12 @@ InstallMethod(GeneratorsOfStzPresentation,
 [IsStzPresentation],
 function(stz)
     return stz!.gens;
+end);
+
+InstallMethod(SetGeneratorsOfStzPresentation,
+[IsStzPresentation, IsList],
+function(stz, newGens)
+    stz!.gens := newGens;
 end);
 
 # # Storing as attribute kinda breaks it since
