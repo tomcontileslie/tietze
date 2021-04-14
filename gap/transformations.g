@@ -119,7 +119,7 @@ end;
 
 # TIETZE TRANSFORMATION 4: REMOVE GENERATOR
 TietzeTransformation4 := function(stz, gen)
-  local found_expr, expr, index, i, decrement;
+  local found_expr, expr, index, i, decrement, tempRels, tempGens;
   # Arguments:
   # - <stz> should be a Semigroup Tietze object.
   # - <gen> should be a pos int (number of generator to be removed)
@@ -174,13 +174,21 @@ TietzeTransformation4 := function(stz, gen)
                   "combination of other generators");
   fi;
 
+  # update mapping (do this early I think)
+  MapToUnreducedFpSemigroupReplaceSubword(stz, [gen], expr);
+
   # otherwise, sub in expression we found and remove relation we used for gen
   # TODO stop the middle man ext rep conversion
-  Remove(stz!.rels, index);
-  expr := SEMIGROUPS.WordToExtRepObj(expr);
-  Apply(stz!.rels, x -> List(x, SEMIGROUPS.WordToExtRepObj));
-  Apply(stz!.rels, x -> List(x, y -> StzSubstitute(y, gen, expr)));
-  Apply(stz!.rels, x -> List(x, SEMIGROUPS.ExtRepObjToWord));
+  tempRels := ShallowCopy(RelationsOfStzPresentation(stz));
+  Remove(tempRels, index);
+  SetRelationsOfStzPresentation(stz, tempRels);
+
+  ##### Had to edit above because it didn't work on my computer
+
+#   expr := LetterRepAssocWord(expr);
+#   Apply(stz!.rels, x -> List(x, LetterRepAssocWord));
+#   Apply(stz!.rels, x -> List(x, y -> StzSubstitute(y, gen, expr)));
+#   Apply(stz!.rels, x -> List(x, LetterRepAssocWord));
   # decrement any gen number beyond the index of the one we removed
   decrement := function(z)
     if z <= gen then  # shouldn't be equal but just in case
@@ -192,5 +200,9 @@ TietzeTransformation4 := function(stz, gen)
   Apply(stz!.rels, x -> List(x, y -> List(y, decrement)));
 
   # remove generator.
-  Remove(stz!.gens, gen);
+  tempGens := ShallowCopy(GeneratorsOfStzPresentation(stz));
+  Remove(tempGens, gen);
+  SetGeneratorsOfStzPresentation(stz, tempGens);
+
+  ##### Same as editing relations
 end;
